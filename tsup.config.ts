@@ -8,4 +8,5 @@ export default defineConfig({
   dts: true,
   outDir: "dist",
   format: ["cjs", "esm"],
+  external: ["react", "next"],
 });
