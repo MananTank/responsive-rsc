@@ -1,6 +1,6 @@
 # Responsive RSC
 
-Cache React Server Components and update the page instantly when revisiting the same page (same search params) without making a round trip to the server for highly responsive pages.
+Get Responsiveness of Client Components for React Server Components in Next.js - Instant updates with client-side cached RSCs and instant Suspense fallbacks.
 
 ## The usual way to update RSCs
 
