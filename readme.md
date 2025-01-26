@@ -2,6 +2,7 @@
 
 Get Responsiveness of Client Components for React Server Components in Next.js - Instant updates with client-side cached RSCs and instant Suspense fallbacks.
 
+
 ## The usual way to update RSCs
 
 When using React Server Components (RSCs) in Next.js - The only way to "update" it is by changing the props by updating the search params of the page using the next.js router from a client component
@@ -32,6 +33,13 @@ Compare this with a fully client rendered component that uses something like [Re
 `responsive-rsc` caches the RSCs and updates them instantly when revisiting the same page (same search params) and avoids making extra requests to the server. The API also allows updating the component that triggers the update (For example: Filter component) to also update instantly - making the page feel very responsive, similar to a fully client rendered component.
 
 ## Example Usage
+
+
+### Installation
+
+```bash
+npm install responsive-rsc
+```
 
 Assume that you have a server component named `Foo` - it fetches some data from the server and renders `FooUI`. You also want to show a skeleton when the data is being fetched using `FooSkeleton`. There is a `Filter` component that allows user to select a date range. When user updates the range, you want to update the `Foo` component in a way that feels very responsive.
 
@@ -96,11 +104,8 @@ export function Filter() {
 
   function handleUpdate(newFrom: string, newTo: string) {
     // when this setting new search params -
-
     // the `Foo` component will immediately suspend and show the `FooSkeleton` if this filter is being set for the first time
-
     // `Foo` will immediately show data if this filter was set previously and previously shown element will be displayed
-
     useSetResponsiveSearchParams(v => {
       ...v, // don't overwrite other search params - if any
       from: newFrom,
