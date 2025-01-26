@@ -25,11 +25,11 @@ function SomeClientComponent() {
 
 The problem with this approach is that when revisiting the same page (pathname + search params) - It still does a round trip to the server to fetch the updated RSCs - Even if the caching is setup properly for fetching the RSC data, it takes some time and makes the page feel less responsive.
 
-If you compare this with a fully client rendered component that uses something like `react-query` - UI is updated instantly for cached query and feels very responsive and does't make any extra requests to the server.
+Compare this with a fully client rendered component that uses something like [React Query](https://tanstack.com/query/latest) or [SWR](https://swr.vercel.app/) - The UI is updated instantly for cached query and doesn't make any requests to the server - This makes the page feel very responsive.
 
 ## The Solution
 
-`responsive-rsc` caches the RSCs and updates them instantly when revisiting the same page (same search params) and avoid extra requests to the server - making the page feel very responsive, similar to a fully client rendered component.
+`responsive-rsc` caches the RSCs and updates them instantly when revisiting the same page (same search params) and avoids making extra requests to the server. The API also allows updating the component that triggers the update (For example: Filter component) to also update instantly - making the page feel very responsive, similar to a fully client rendered component.
 
 ## Example Usage
 
