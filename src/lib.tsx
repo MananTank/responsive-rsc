@@ -121,8 +121,8 @@ export function ResponsiveSearchParamsProvider(
   props: ResponsiveSearchParamsProviderProps
 ) {
   const pathname = usePathname();
-  const route = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const [isRoutePending, startRouteTransition] = useTransition();
 
   const pageSearchParams = props.value;
   const visitedSearchParamsRef = useRef(new Set<string>());
@@ -133,10 +133,10 @@ export function ResponsiveSearchParamsProvider(
 
   // eslint-disable-next-line no-restricted-syntax
   useEffect(() => {
-    if (!isPending) {
+    if (!isRoutePending) {
       pendingSearchParamsStore.setValue(undefined);
     }
-  }, [isPending]);
+  }, [isRoutePending]);
 
   const responsiveSearchParams = useMemo(() => {
     return {
@@ -164,18 +164,19 @@ export function ResponsiveSearchParamsProvider(
 
       // if this search params is new
       visitedSearchParamsRef.current.add(searchParamsString);
-      startTransition(() => {
-        const newPendingSearchParams: ResponsiveSearchParams = {};
-        // check which search param is updated
-        for (const key in newSearchParams) {
-          if (newSearchParams[key] !== responsiveSearchParams[key]) {
-            newPendingSearchParams[key] = newSearchParams[key];
-          }
+
+      // calculate pending search params by comparing new search params with current search params
+      const _pendingSearchParams: ResponsiveSearchParams = {};
+      for (const key in newSearchParams) {
+        if (newSearchParams[key] !== responsiveSearchParams[key]) {
+          _pendingSearchParams[key] = newSearchParams[key];
         }
+      }
 
-        pendingSearchParamsStore.setValue(newPendingSearchParams);
+      pendingSearchParamsStore.setValue(_pendingSearchParams);
 
-        route.replace(
+      startRouteTransition(() => {
+        router.replace(
           `${pathname}${searchParamsString ? `?${searchParamsString}` : ""}`,
           {
             scroll: false,
@@ -183,7 +184,7 @@ export function ResponsiveSearchParamsProvider(
         );
       });
     },
-    [pathname, route, responsiveSearchParams]
+    [pathname, router, responsiveSearchParams]
   );
 
   return (
