@@ -16,41 +16,47 @@ import {
 
 // General types -------------------------------------
 
-export type ResponsiveSearchParams = Record<string, string | undefined>;
-export type SetResponsiveSearchParams = React.Dispatch<
-  React.SetStateAction<ResponsiveSearchParams>
+export type SearchParams = Record<string, string | string[] | undefined>;
+export type SetSearchParams = React.Dispatch<
+  React.SetStateAction<SearchParams>
 >;
 
 // contexts --------------------------------------------
 
-const ResponsiveSearchParamsCtx = createContext<
-  ResponsiveSearchParams | undefined
->(undefined);
+const ResponsiveSearchParamsCtx = createContext<SearchParams | undefined>(
+  undefined
+);
 
-const PageSearchParamsCtx = createContext<ResponsiveSearchParams>({});
+const PageSearchParamsCtx = createContext<SearchParams>({});
 
-const SetResponsiveSearchParamsCtx = createContext<
-  SetResponsiveSearchParams | undefined
->(undefined);
+const SetResponsiveSearchParamsCtx = createContext<SetSearchParams | undefined>(
+  undefined
+);
 
 const IsRSCPendingCtx = createContext<boolean | undefined>(undefined);
 
 // stores ----------------------------------------------
 
-const pendingSearchParamsStore = createStore<
-  ResponsiveSearchParams | undefined
->(undefined);
+const pendingSearchParamsStore = createStore<SearchParams | undefined>(
+  undefined
+);
 
 // Internals --------------------------------
 
-function stringifySearchParams(params: ResponsiveSearchParams) {
+function stringifySearchParams(params: SearchParams) {
   const keys = Object.keys(params).sort();
   const urlSearchParams = new URLSearchParams(window.location.search);
 
   for (const key of keys) {
     const val = params[key];
     if (val) {
-      urlSearchParams.set(key, val);
+      if (Array.isArray(val)) {
+        for (const v of val) {
+          urlSearchParams.append(key, v);
+        }
+      } else {
+        urlSearchParams.set(key, val);
+      }
     }
   }
 
@@ -93,14 +99,14 @@ function CacheRSC(props: {
 }
 
 function useCacheKey(searchParamsUsed: string[]) {
-  const responsiveParams = useResponsiveSearchParams();
+  const responsiveSearchParams = useResponsiveSearchParams();
 
   const cacheKey = useMemo(() => {
     return searchParamsUsed
-      .filter((key) => responsiveParams[key])
-      .map((key) => `${key}=${responsiveParams[key]}`)
+      .filter((key) => responsiveSearchParams[key])
+      .map((key) => `${key}=${responsiveSearchParams[key]}`)
       .join("&");
-  }, [responsiveParams, searchParamsUsed]);
+  }, [responsiveSearchParams, searchParamsUsed]);
 
   return cacheKey;
 }
@@ -119,7 +125,7 @@ function useIsSearchParamsPending(searchParamNames: string[]) {
 
 export type ResponsiveSearchParamsProviderProps = {
   children: React.ReactNode;
-  value: ResponsiveSearchParams;
+  value: SearchParams;
 };
 
 export function ResponsiveSearchParamsProvider(
@@ -133,7 +139,7 @@ export function ResponsiveSearchParamsProvider(
   const visitedSearchParamsRef = useRef(new Set<string>());
 
   const [searchParamsOverride, setSearchParamsOverride] = useState<
-    ResponsiveSearchParams | undefined
+    SearchParams | undefined
   >(undefined);
 
   useEffect(() => {
@@ -149,7 +155,7 @@ export function ResponsiveSearchParamsProvider(
     };
   }, [searchParamsOverride, pageSearchParams]);
 
-  const setResponsiveSearchParams: SetResponsiveSearchParams = useCallback(
+  const setResponsiveSearchParams: SetSearchParams = useCallback(
     (newSearchParamsDispatch) => {
       const newSearchParams =
         typeof newSearchParamsDispatch === "function"
@@ -170,9 +176,12 @@ export function ResponsiveSearchParamsProvider(
       visitedSearchParamsRef.current.add(searchParamsString);
 
       // calculate pending search params by comparing new search params with current search params
-      const _pendingSearchParams: ResponsiveSearchParams = {};
+      const _pendingSearchParams: SearchParams = {};
       for (const key in newSearchParams) {
-        if (newSearchParams[key] !== responsiveSearchParams[key]) {
+        if (
+          newSearchParams[key]?.toString() !==
+          responsiveSearchParams[key]?.toString()
+        ) {
           _pendingSearchParams[key] = newSearchParams[key];
         }
       }

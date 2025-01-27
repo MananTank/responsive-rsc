@@ -10,8 +10,8 @@ export {
   // Components
   ResponsiveSuspense,
   // Types
-  type ResponsiveSearchParams,
-  type SetResponsiveSearchParams,
+  type SearchParams,
+  type SetSearchParams,
   type ResponsiveSuspenseProps,
   type ResponsiveSearchParamsProviderProps,
 } from "./lib";

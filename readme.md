@@ -125,8 +125,8 @@ While this Example only shows a single Filter component and Single RSC - It also
 
 ## Important Notes
 
-* If you want to make an RSC "responsive" and it uses certain search params - You need to make sure that all the RSCs that depend on those search params are also following the "responsive" pattern - they should be wrapped in `ResponsiveSuspense` as well.
-* The component that updates a search param (example: Filter component) and the "responsive" RSCs that depend on that search param should all be wrapped in `ResponsiveSearchParamsProvider` - as a general rule of thumb, you should just have a single `ResponsiveSearchParamsProvider` at the top level of the page and set all the search params used by the RSCs in that provider.
+* If you use `responsive-rsc` for a RSC component - all the RSC component that depend on search params must also use `responsive-rsc` - wrapped in `ResponsiveSuspense` component.
+* There should only be a single `ResponsiveSearchParamsProvider` per page
 * When using `useSetResponsiveSearchParams` hook - you should avoid overwriting other search params by only updating the search params that you are interested in updating - See above example.
 
 
