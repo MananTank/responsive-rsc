@@ -85,7 +85,10 @@ function CacheRSC(props: {
     return cachedChildren;
   }
 
-  childrenCache.set(props.cacheKey, props.children);
+  if (!isPending) {
+    childrenCache.set(props.cacheKey, props.children);
+  }
+
   return props.children;
 }
 
