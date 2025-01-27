@@ -1,6 +1,6 @@
 {
 	"name": "responsive-rsc",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "Render cached React Server Components when visiting same search params in page for highly responsive UI",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",

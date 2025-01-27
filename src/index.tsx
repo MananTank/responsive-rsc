@@ -6,6 +6,7 @@ export {
   // Hooks
   useResponsiveSearchParams,
   useSetResponsiveSearchParams,
+  isRSCPending,
   // Components
   ResponsiveSuspense,
   // Types

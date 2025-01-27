@@ -1,11 +1,11 @@
 # Responsive RSC
 
-Get Responsiveness of Client Components for React Server Components in Next.js - Instant updates with client-side cached RSCs and instant Suspense fallbacks.
+Get Responsiveness of Client Components for React Server Components in Next.js - Instant updates with client-side cached RSCs and Suspense fallbacks.
 
 
-## The usual way to update RSCs
+## Conventional way of updating RSCs in Next.js
 
-When using React Server Components (RSCs) in Next.js - The only way to "update" it is by changing the props by updating the search params of the page using the next.js router from a client component
+When using React Server Components (RSCs) in Next.js, The only way to "update" it is by changing it's props. This is usually done by updating the search params of the page using the router from a client component as shown below:
 
 ```ts
 "use client"
@@ -14,23 +14,23 @@ function SomeClientComponent() {
   const router = useRouter();
   const pathname = usePathname();
 
-  function handleUpdate() {
+  function handleUpdate(newSearchParams) {
     router.replace(`/${pathname}?${newSearchParams}`);
   }
 
-  return <div> ... </div>
+  return <> ... </>
 }
 ```
 
 ## The Problem
 
-The problem with this approach is that when revisiting the same page (pathname + search params) - It still does a round trip to the server to fetch the updated RSCs - Even if the caching is setup properly for fetching the RSC data, it takes some time and makes the page feel less responsive.
+When visiting a page again (same pathname + search params) - It still requires doing a round trip to the server to fetch the updated RSCs - Even if the caching is setup properly for fetching the RSC data, it takes some non-zero time and makes the page feel less responsive
 
-Compare this with a fully client rendered component that uses something like [React Query](https://tanstack.com/query/latest) or [SWR](https://swr.vercel.app/) - The UI is updated instantly for cached query and doesn't make any requests to the server - This makes the page feel very responsive.
+Compare this with a fully client rendered component that uses something like [React Query](https://tanstack.com/query/latest) or [SWR](https://swr.vercel.app/) -  The UI is updated instantly for cached query and doesn't make any requests to the server. This makes the page feel very responsive.
 
 ## The Solution
 
-`responsive-rsc` caches the RSCs and updates them instantly when revisiting the same page (same search params) and avoids making extra requests to the server. The API also allows updating the component that triggers the update (For example: Filter component) to also update instantly - making the page feel very responsive, similar to a fully client rendered component.
+`responsive-rsc` caches the RSCs and updates them instantly when setting search params that were previously visited in the session and avoids making extra requests to the server. The API also allows updating the component that triggers the update (For example: Filter component) to also update instantly - making the page feel very responsive, similar to a fully client rendered component.
 
 ## Example Usage
 
@@ -41,14 +41,14 @@ Compare this with a fully client rendered component that uses something like [Re
 npm install responsive-rsc
 ```
 
-Assume that you have a server component named `Foo` - it fetches some data from the server and renders `FooUI`. You also want to show a skeleton when the data is being fetched using `FooSkeleton`. There is a `Filter` component that allows user to select a date range. When user updates the range, you want to update the `Foo` component in a way that feels very responsive.
+Consider this scenario: There is a `Filter` component that allows user to select a date range. When user selects a date range, you want to update a server component named `Foo` component. There is a `FooSkeleton` component that renders a skeleton that should be shown while the new data is being fetched.
 
-### The goal is to
-* _Instantly_ update the `Filter` UI when the user selects a new date range and show the `FooSkeleton` while the new data is being fetched.
+
+### With Responsive RSC, you can:
+* _Instantly_ update the `Filter` UI when the user selects a new date range and show the `FooSkeleton` while route transition is pending.
 * If user selects a previously selected date range - the `Foo` should be updated instantly without making a round trip to the server.
 
-You can achieve this using `responsive-rsc` like this:
-
+You can achieve this behavior using `responsive-rsc` as shown below:
 
 ### Page setup
 
@@ -63,16 +63,18 @@ type PageProps ={
 export default async function Page(props: PageProps) {
   // get the search params we are interested in
   const searchParams = await props.searchParams;
+
+  // ensure search param is in expected format
   const from = typeof searchParams.from === 'string' ? searchParams.from : undefined;
   const to = typeof searchParams.to === 'string' ? searchParams.to : undefined;
 
-  // set those search params in the Provider
+  // set search params in Provider
   return (
     <ResponsiveSearchParamsProvider value={{ from, to }}>
       <Filter />
 
      {/* Wrap RSC with ResponsiveSuspense */}
-     {/* Specify the search params dependency in searchParamsUsed prop */}
+     {/* Specify the search params used by RSC in searchParamsUsed prop */}
      {/* Provide skeleton in fallback prop */}
       <ResponsiveSuspense
         searchParamsUsed={["from", "to"]}

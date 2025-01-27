@@ -33,6 +33,8 @@ const SetResponsiveSearchParamsCtx = createContext<
   SetResponsiveSearchParams | undefined
 >(undefined);
 
+const IsRSCPendingCtx = createContext<boolean | undefined>(undefined);
+
 // stores ----------------------------------------------
 
 const pendingSearchParamsStore = createStore<
@@ -60,22 +62,12 @@ function CacheRSC(props: {
   children: React.ReactNode;
   cacheKey: string;
   childrenCache: Map<string, React.ReactNode>;
+  suspendOnTransition: boolean;
+  isPending: boolean;
 }) {
-  const { childrenCache } = props;
-  // eslint-disable-next-line react-compiler/react-compiler
+  const { childrenCache, isPending } = props;
 
-  const pendingSearchParams = useStore(pendingSearchParamsStore);
-
-  // if any of searchParamsUsed is pending
-  const isPending = useMemo(() => {
-    return (
-      pendingSearchParams &&
-      props.searchParamsUsed.some((key) => pendingSearchParams[key])
-    );
-  }, [pendingSearchParams, props.searchParamsUsed]);
-
-  // suspend this component its pending
-  if (isPending) {
+  if (isPending && props.suspendOnTransition) {
     throw new Promise<void>((resolve) => {
       const unsubscribe = pendingSearchParamsStore.subscribe(() => {
         const val = pendingSearchParamsStore.getValue();
@@ -110,6 +102,16 @@ function useCacheKey(searchParamsUsed: string[]) {
   return cacheKey;
 }
 
+function useIsSearchParamsPending(searchParamNames: string[]) {
+  const pendingSearchParams = useStore(pendingSearchParamsStore);
+  return useMemo(() => {
+    return (
+      !!pendingSearchParams &&
+      searchParamNames.some((key) => pendingSearchParams[key])
+    );
+  }, [pendingSearchParams, searchParamNames]);
+}
+
 // Components -----------------------------------------
 
 export type ResponsiveSearchParamsProviderProps = {
@@ -131,7 +133,6 @@ export function ResponsiveSearchParamsProvider(
     ResponsiveSearchParams | undefined
   >(undefined);
 
-  // eslint-disable-next-line no-restricted-syntax
   useEffect(() => {
     if (!isRoutePending) {
       pendingSearchParamsStore.setValue(undefined);
@@ -204,30 +205,49 @@ export type ResponsiveSuspenseProps = {
   searchParamsUsed: string[];
   children: React.ReactNode;
   fallback: React.ReactNode;
+  suspendOnTransition?: boolean;
 };
 
 export function ResponsiveSuspense(props: ResponsiveSuspenseProps) {
   const cacheKey = useCacheKey(props.searchParamsUsed);
   const [childrenCache] = useState(() => new Map<string, React.ReactNode>());
+  const isPending = useIsSearchParamsPending(props.searchParamsUsed);
 
   return (
     <Suspense fallback={props.fallback}>
-      <CacheRSC
-        searchParamsUsed={props.searchParamsUsed}
-        cacheKey={cacheKey}
-        childrenCache={childrenCache}
-      >
-        {props.children}
-      </CacheRSC>
+      <IsRSCPendingCtx.Provider value={isPending}>
+        <CacheRSC
+          isPending={isPending}
+          suspendOnTransition={
+            props.suspendOnTransition === undefined
+              ? true
+              : props.suspendOnTransition
+          }
+          searchParamsUsed={props.searchParamsUsed}
+          cacheKey={cacheKey}
+          childrenCache={childrenCache}
+        >
+          {props.children}
+        </CacheRSC>
+      </IsRSCPendingCtx.Provider>
     </Suspense>
   );
 }
 
 // Hooks ----------------------------------------------
 
+export function isRSCPending() {
+  const val = useContext(IsRSCPendingCtx);
+  if (val === undefined) {
+    throw new Error("isRSCPending must be used within a <ResponsiveSuspense>");
+  }
+
+  return val;
+}
+
 export function useResponsiveSearchParams() {
   const val = useContext(ResponsiveSearchParamsCtx);
-  if (!val) {
+  if (val === undefined) {
     throw new Error(
       "useResponsiveSearchParams must be used within a <ResponsiveSearchParamsProvider>"
     );
@@ -238,7 +258,7 @@ export function useResponsiveSearchParams() {
 
 export function useSetResponsiveSearchParams() {
   const val = useContext(SetResponsiveSearchParamsCtx);
-  if (!val) {
+  if (val === undefined) {
     throw new Error(
       "useSetResponsiveSearchParams must be used within a <ResponsiveSearchParamsProvider>"
     );
