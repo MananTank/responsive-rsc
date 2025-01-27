@@ -103,12 +103,13 @@ import { useResponsiveSearchParams,  useSetResponsiveSearchParams } from "respon
 export function Filter() {
   // get searchParams from `useResponsiveSearchParams` to immediately update filter UI when user selects a new date range
   const { from, to } = useResponsiveSearchParams();
+  const setResponsiveSearchParams = useSetResponsiveSearchParams();
 
   function handleUpdate(newFrom: string, newTo: string) {
     // when this setting new search params -
     // the `Foo` component will immediately suspend and show the `FooSkeleton` if this filter is being set for the first time
     // `Foo` will immediately show data if this filter was set previously and previously shown element will be displayed
-    useSetResponsiveSearchParams(v => {
+    setResponsiveSearchParams(v => {
       ...v, // don't overwrite other search params - if any
       from: newFrom,
       to: newTo
