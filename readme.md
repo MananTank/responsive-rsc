@@ -117,7 +117,7 @@ export function Filter() {
   }
 
   // use `from` and `to` to show the currently selected date range
-  // when calling `handleUpdate` with new range - they will be updated instantly - even if new route is still loading
+  // when calling `handleUpdate` with new range - these search params be updated instantly - even if new route is still loading
   return <div> ... </div>
 }
 ```
@@ -131,6 +131,6 @@ While this Example only shows a single Filter component and Single RSC - It also
 * When using `useSetResponsiveSearchParams` hook - you should avoid overwriting other search params by only updating the search params that you are interested in updating - See above example.
 
 
-### License
+## License
 
 MIT
